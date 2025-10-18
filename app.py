@@ -36,7 +36,6 @@ def admin_required(f):
     return decorated_function
 
 # --- ROTAS PÚBLICAS E DE CLIENTES ---
-# (As rotas index, product, login, register, etc., continuam aqui sem alteração)
 @app.route('/')
 def index():
     try:
@@ -174,7 +173,7 @@ def reset_password(token):
     conn.close()
     return render_template('reset_password.html', token=token)
 
-# --- ROTAS DE ASSINATURA (NOVAS E ATUALIZADAS) ---
+# --- ROTAS DE ASSINATURA ---
 @app.route('/subscriptions')
 def subscriptions_page():
     return render_template('subscriptions.html')
@@ -231,7 +230,7 @@ def cancel_subscription():
     return redirect(url_for('my_account'))
 
 
-# --- ROTA 'my_account' ATUALIZADA ---
+# --- 'my_account'---
 @app.route('/my_account', methods=['GET', 'POST'])
 def my_account():
     if 'loggedin' not in session: return redirect(url_for('login'))
@@ -259,8 +258,6 @@ def my_account():
     conn.close()
     return render_template('my_account.html', addresses=addresses, orders=orders, subscription=subscription)
 
-# (O restante do código de carrinho, admin, etc. continua aqui)
-# ...
 @app.route('/add_to_cart/<int:product_id>', methods=['POST'])
 def add_to_cart(product_id):
     if 'loggedin' not in session: flash('Você precisa estar logado para adicionar itens ao carrinho!', 'warning'); return redirect(url_for('login'))
