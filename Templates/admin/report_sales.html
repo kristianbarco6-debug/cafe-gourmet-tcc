@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Relatório de Vendas{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2 class="pb-2">Relatório de Vendas</h2>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Voltar ao Dashboard</a>
+</div>
+<p>Lista de todos os pedidos com status "Entregue", ordenados pelos mais recentes.</p>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Pedido ID</th>
+                <th>Data</th>
+                <th>Cliente</th>
+                <th class="text-end">Valor Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sale in sales %}
+            <tr>
+                <td>#{{ sale.id }}</td>
+                <td>{{ sale.order_date.strftime('%d/%m/%Y %H:%M') }}</td>
+                <td>{{ sale.customer_name }}</td>
+                <td class="text-end">R$ {{ "%.2f"|format(sale.total_amount|float) }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="text-center">Nenhuma venda concluída encontrada.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

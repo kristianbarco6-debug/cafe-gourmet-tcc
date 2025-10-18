@@ -1,0 +1,30 @@
+/* Estilo para a Seção Principal (Hero) */
+.hero-section {
+    position: relative;
+    height: 60vh;
+    background-image: url('../img/hero-banner.jpg'); /* Imagem de fundo */
+    background-size: cover;
+    background-position: center;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+/* Camada escura sobre a imagem para melhor legibilidade do texto */
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Conteúdo do Hero (texto) */
+.hero-content {
+    position: relative; /* Para ficar acima da camada escura */
+    z-index: 2;
+}

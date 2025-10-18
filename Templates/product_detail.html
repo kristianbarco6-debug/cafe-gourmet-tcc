@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6">
+            <img src="{{ product.image_url if product.image_url else 'https://placehold.co/600x400/603813/FFFFFF.png?text=Café' }}" 
+                 class="img-fluid rounded shadow" 
+                 alt="{{ product.name }}">
+        </div>
+
+        <div class="col-md-6">
+            <h1>{{ product.name }}</h1>
+
+            {% if reviews %}
+            <p class="lead">
+                Nota Média: {{ "%.1f"|format(avg_rating|float) }} / 5.0 ({{ reviews|length }} avaliações)
+            </p>
+            {% else %}
+            <p class="lead text-muted">Ainda não há avaliações para este produto.</p>
+            {% endif %}
+            
+            <h3 class="my-3">R$ {{ "%.2f"|format(product.price|float) }}</h3>
+            
+            <p>{{ product.description }}</p>
+
+            <hr>
+
+            <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="post" class="d-flex">
+                <div class="me-3">
+                    <label for="quantity" class="form-label">Quantidade</label>
+                    <input type="number" name="quantity" id="quantity" class="form-control" value="1" min="1" max="{{ product.stock_quantity }}" style="width: 80px;">
+                </div>
+                <div class="align-self-end">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cart-plus-fill" viewBox="0 0 16 16">
+                            <path d="M.5 1a.5.5 0 0 0 0 1h1.11l.401 1.607 1.498 7.985A.5.5 0 0 0 4 12h1a2 2 0 1 0 0 4 2 2 0 0 0 0-4h7a2 2 0 1 0 0 4 2 2 0 0 0 0-4h1a.5.5 0 0 0 .491-.408l1.5-8A.5.5 0 0 0 14.5 3H2.89l-.405-1.621A.5.5 0 0 0 2 1zM6 14a1 1 0 1 1-2 0 1 1 0 0 1 2 0m7 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0M9 5.5V7h1.5a.5.5 0 0 1 0 1H9v1.5a.5.5 0 0 1-1 0V8H6.5a.5.5 0 0 1 0-1H8V5.5a.5.5 0 0 1 1 0"/>
+                        </svg>
+                        Adicionar ao Carrinho
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <hr class="my-5">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="pb-2 border-bottom">Avaliações de Clientes</h2>
+            {% if reviews %}
+                {% for review in reviews %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ review.name }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">Nota: {{ review.rating }}/5 - em {{ review.created_at.strftime('%d/%m/%Y') }}</h6>
+                        <p class="card-text">{{ review.comment }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>Este produto ainda não tem avaliações. Seja o primeiro a avaliar após a compra!</p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endblock %}

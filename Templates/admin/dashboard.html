@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Painel Administrativo{% endblock %}
+
+{% block content %}
+<h2 class="pb-2 border-bottom">Painel Administrativo</h2>
+<p class="lead">Bem-vindo, {{ session.name }}!</p>
+
+<div class="row g-4 py-3">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Gerenciar Produtos</h5>
+                <p class="card-text">Adicione, edite ou remova produtos do catálogo da sua loja.</p>
+                <a href="{{ url_for('admin_products') }}" class="btn btn-primary">Ir para Produtos</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Gerenciar Pedidos</h5>
+                <p class="card-text">Visualize os pedidos dos clientes e atualize o status de entrega.</p>
+                <a href="{{ url_for('admin_orders') }}" class="btn btn-primary">Ir para Pedidos</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h3 class="pb-2 border-bottom mt-5">Relatórios</h3>
+<div class="row g-4 py-3">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Relatório de Vendas</h5>
+                <p class="card-text">Visualize um histórico de todos os pedidos que já foram entregues.</p>
+                <a href="{{ url_for('report_sales') }}" class="btn btn-success">Ver Relatório de Vendas</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Controle de Estoque</h5>
+                <p class="card-text">Veja quais produtos estão com estoque baixo e precisam de reposição.</p>
+                <a href="{{ url_for('report_low_stock') }}" class="btn btn-warning">Ver Estoque Baixo</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

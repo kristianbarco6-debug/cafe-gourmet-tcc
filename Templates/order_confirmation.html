@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Pedido Confirmado{% endblock %}
+
+{% block content %}
+<div class="py-5 text-center">
+    <svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" fill="currentColor" class="bi bi-check-circle-fill text-success" viewBox="0 0 16 16">
+        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM6.97 11.03a.75.75 0 0 0 1.06 0l3.5-3.5a.75.75 0 1 0-1.06-1.06L8 8.94 7.53 8.47a.75.75 0 0 0-1.06 1.06l.5.5z"/>
+    </svg>
+    <h2 class="mt-4">Obrigado pelo seu pedido!</h2>
+    <p class="lead">Seu pedido de número <strong>#{{ order_id }}</strong> foi recebido e está sendo processado.</p>
+    <p>Enviaremos uma notificação por email quando ele for enviado.</p>
+    <a href="{{ url_for('index') }}" class="btn btn-primary mt-3">Voltar à Página Inicial</a>
+</div>
+{% endblock %}

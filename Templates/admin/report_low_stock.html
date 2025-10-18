@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Relatório de Estoque Baixo{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center">
+    <h2 class="pb-2">Relatório de Estoque Baixo</h2>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Voltar ao Dashboard</a>
+</div>
+<p>Lista de produtos com {{ limit }} ou menos unidades em estoque.</p>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Produto ID</th>
+                <th>Nome</th>
+                <th class="text-end">Quantidade Restante</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td>{{ product.id }}</td>
+                <td>{{ product.name }}</td>
+                <td class="text-end">
+                    <span class="badge bg-danger">{{ product.stock_quantity }}</span>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3" class="text-center">Nenhum produto com estoque baixo encontrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}Finalizar Compra{% endblock %}
+
+{% block content %}
+<h2 class="pb-2 border-bottom">Checkout</h2>
+<div class="row g-5">
+    <div class="col-md-5 col-lg-4 order-md-last">
+        <h4 class="d-flex justify-content-between align-items-center mb-3">
+            <span class="text-primary">Seu Carrinho</span>
+            <span class="badge bg-primary rounded-pill">{{ cart_items|length }}</span>
+        </h4>
+        <ul class="list-group mb-3">
+            {% for item in cart_items.values() %}
+            <li class="list-group-item d-flex justify-content-between lh-sm">
+                <div>
+                    <h6 class="my-0">{{ item.name }}</h6>
+                    <small class="text-muted">Qtd: {{ item.quantity }}</small>
+                </div>
+                <span class="text-muted">R$ {{ "%.2f"|format(item.price * item.quantity) }}</span>
+            </li>
+            {% endfor %}
+            <li class="list-group-item d-flex justify-content-between">
+                <span>Total (BRL)</span>
+                <strong>R$ {{ "%.2f"|format(total_price) }}</strong>
+            </li>
+        </ul>
+    </div>
+
+    <div class="col-md-7 col-lg-8">
+        <h4 class="mb-3">Endereço e Pagamento</h4>
+        <form action="{{ url_for('place_order') }}" method="post">
+            <h5>Endereço de Entrega</h5>
+            {% if addresses %}
+                {% for address in addresses %}
+                <div class="form-check">
+                    <input id="address{{ address.id }}" name="address_id" type="radio" class="form-check-input" value="{{ address.id }}" required>
+                    <label class="form-check-label" for="address{{ address.id }}">
+                        {{ address.street }}, {{ address.number }} - {{ address.neighborhood }}, {{ address.city }} - {{ address.state }}
+                    </label>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-warning">Você não possui endereços cadastrados. Adicione um em "Minha Conta".</div>
+            {% endif %}
+
+            <hr class="my-4">
+
+            <h5 class="mb-3">Pagamento</h5>
+            <div class="my-3">
+                <div class="form-check">
+                    <input id="credito" name="payment_method" type="radio" class="form-check-input" value="cartao_de_credito" required>
+                    <label class="form-check-label" for="credito">Cartão de Crédito</label>
+                </div>
+                <div class="form-check">
+                    <input id="pix" name="payment_method" type="radio" class="form-check-input" value="pix" required>
+                    <label class="form-check-label" for="pix">Pix</label>
+                </div>
+                <div class="form-check">
+                    <input id="boleto" name="payment_method" type="radio" class="form-check-input" value="boleto" required>
+                    <label class="form-check-label" for="boleto">Boleto</label>
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <button class="w-100 btn btn-primary btn-lg" type="submit" {% if not addresses %}disabled{% endif %}>
+                Confirmar Pedido
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

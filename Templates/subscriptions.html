@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Nossos Planos de Assinatura{% endblock %}
+
+{% block content %}
+<div class="pricing-header p-3 pb-md-4 mx-auto text-center">
+    <h1 class="display-4 fw-normal">Planos de Assinatura</h1>
+    <p class="fs-5 text-muted">Receba os melhores cafés gourmet na sua casa, todo mês. Escolha o plano perfeito para você e nunca mais se preocupe em ficar sem seu café especial.</p>
+</div>
+
+<div class="row row-cols-1 row-cols-md-2 mb-3 text-center justify-content-center">
+    <div class="col">
+        <div class="card mb-4 rounded-3 shadow-sm">
+            <div class="card-header py-3">
+                <h4 class="my-0 fw-normal">Café do Mês</h4>
+            </div>
+            <div class="card-body">
+                <h1 class="card-title pricing-card-title">R$ 59,90<small class="text-muted fw-light">/mês</small></h1>
+                <ul class="list-unstyled mt-3 mb-4">
+                    <li>1 pacote de 250g de café especial</li>
+                    <li>Seleção surpresa do nosso barista</li>
+                    <li>Frete grátis para todo o Brasil</li>
+                    <li>Cancele quando quiser</li>
+                </ul>
+                <form action="{{ url_for('subscribe') }}" method="post">
+                    <input type="hidden" name="plan_name" value="Café do Mês">
+                    <input type="hidden" name="plan_price" value="59.90">
+                    <button type="submit" class="w-100 btn btn-lg btn-outline-primary">Assinar agora</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div class="card mb-4 rounded-3 shadow-sm border-primary">
+            <div class="card-header py-3 text-white bg-primary border-primary">
+                <h4 class="my-0 fw-normal">Kit Premium</h4>
+            </div>
+            <div class="card-body">
+                <h1 class="card-title pricing-card-title">R$ 99,90<small class="text-muted fw-light">/mês</small></h1>
+                <ul class="list-unstyled mt-3 mb-4">
+                    <li>2 pacotes de 250g (sabores diferentes)</li>
+                    <li>Acesso antecipado a novos lotes</li>
+                    <li>Brinde surpresa a cada 3 meses</li>
+                    <li>Frete grátis e cancelamento fácil</li>
+                </ul>
+                <form action="{{ url_for('subscribe') }}" method="post">
+                    <input type="hidden" name="plan_name" value="Kit Premium">
+                    <input type="hidden" name="plan_price" value="99.90">
+                    <button type="submit" class="w-100 btn btn-lg btn-primary">Assinar Kit Premium</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

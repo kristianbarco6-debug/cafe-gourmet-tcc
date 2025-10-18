@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}Seu Carrinho de Compras{% endblock %}
+
+{% block content %}
+<h2 class="pb-2 border-bottom">Seu Carrinho</h2>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+{% if cart_items %}
+    <div class="row">
+        <div class="col-md-8">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 50%;">Produto</th>
+                        <th class="text-center" style="width: 25%;">Quantidade</th>
+                        <th class="text-end">Subtotal</th>
+                        <th class="text-center">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product_id, item in cart_items.items() %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td class="text-center">
+                            <form action="{{ url_for('update_cart', product_id=product_id) }}" method="post" class="d-flex justify-content-center align-items-center">
+                                <input type="number" name="quantity" class="form-control form-control-sm" value="{{ item.quantity }}" min="1" style="width: 70px;">
+                                <button type="submit" class="btn btn-outline-primary btn-sm ms-2">Atualizar</button>
+                            </form>
+                        </td>
+                        <td class="text-end">R$ {{ "%.2f"|format(item.price * item.quantity) }}</td>
+                        <td class="text-center">
+                            <form action="{{ url_for('remove_from_cart', product_id=product_id) }}" method="post">
+                                <button type="submit" class="btn btn-outline-danger btn-sm" title="Remover item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3-fill" viewBox="0 0 16 16">
+                                        <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5m-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5M4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06m3 0l-.5 8.5a.5.5 0 1 0 .998.06l.5-8.5a.5.5 0 1 0-.998.06m3.5-.029l-.5 8.5a.5.5 0 1 0 .998.06l.5-8.5a.5.5 0 1 0-.998.06"/>
+                                    </svg>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Resumo do Pedido</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Subtotal</span>
+                            <span id="subtotal" data-value="{{ total_price }}">R$ {{ "%.2f"|format(total_price) }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Frete</span>
+                            <span id="frete-valor">R$ 0.00</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between fs-4">
+                            <strong>Total</strong>
+                            <strong id="total-geral">R$ {{ "%.2f"|format(total_price) }}</strong>
+                        </li>
+                    </ul>
+                    <hr>
+                    <form id="form-frete">
+                        <label for="cep" class="form-label">Calcular Frete:</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="cep" placeholder="Digite seu CEP" pattern="\d{8}">
+                            <button class="btn btn-outline-secondary" type="submit">Calcular</button>
+                        </div>
+                    </form>
+                    <div id="frete-resultado" class="mt-2 text-muted"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <hr class="my-4">
+
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Continuar Comprando</a>
+            <form action="{{ url_for('clear_cart') }}" method="post" class="d-inline-block ms-2">
+                <button type="submit" class="btn btn-danger">Esvaziar Carrinho</button>
+            </form>
+        </div>
+        <a href="{{ url_for('checkout') }}" class="btn btn-primary btn-lg">Finalizar Compra</a>
+    </div>
+
+{% else %}
+    <div class="alert alert-info mt-4">
+        Seu carrinho está vazio. <a href="{{ url_for('index') }}" class="alert-link">Comece a comprar</a>!
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const formFrete = document.getElementById('form-frete');
+    if (formFrete) {
+        formFrete.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const resultadoDiv = document.getElementById('frete-resultado');
+            const freteValorSpan = document.getElementById('frete-valor');
+            const totalGeralStrong = document.getElementById('total-geral');
+            const subtotalSpan = document.getElementById('subtotal');
+            
+            resultadoDiv.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Calculando...';
+
+            setTimeout(function() {
+                const valorFrete = 15.00;
+                const prazo = "5 dias úteis";
+                const subtotal = parseFloat(subtotalSpan.dataset.value);
+                const novoTotal = subtotal + valorFrete;
+
+                resultadoDiv.textContent = `Prazo de entrega: ${prazo}`;
+                freteValorSpan.textContent = `R$ ${valorFrete.toFixed(2).replace('.', ',')}`;
+                totalGeralStrong.textContent = `R$ ${novoTotal.toFixed(2).replace('.', ',')}`;
+            }, 1000);
+        });
+    }
+});
+</script>
+{% endblock %}

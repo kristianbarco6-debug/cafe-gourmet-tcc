@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<h2 class="pb-2 border-bottom">{{ title }}</h2>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Nome do Produto</label>
+                        <input type="text" class="form-control" id="name" name="name" required value="{{ product.name if product else '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Descrição</label>
+                        <textarea class="form-control" id="description" name="description" rows="5" required>{{ product.description if product else '' }}</textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="price" class="form-label">Preço (R$)</label>
+                            <input type="number" step="0.01" class="form-control" id="price" name="price" required value="{{ product.price if product else '' }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="stock_quantity" class="form-label">Estoque</label>
+                            <input type="number" class="form-control" id="stock_quantity" name="stock_quantity" required value="{{ product.stock_quantity if product else '' }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="category_id" class="form-label">Categoria</label>
+                            <select class="form-select" id="category_id" name="category_id" required>
+                                <option value="" disabled>-- Selecione --</option>
+                                {% for category in categories %}
+                                    <option value="{{ category.id }}" {% if product and product.category_id == category.id %}selected{% endif %}>
+                                        {{ category.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="image" class="form-label">Imagem do Produto</label>
+                        <input class="form-control" type="file" id="image" name="image">
+                        {% if product and product.image_url %}
+                            <small class="form-text text-muted">Imagem atual:</small><br>
+                            <img src="{{ url_for('static', filename=product.image_url.replace('static/', '')) }}" alt="Imagem atual" class="img-thumbnail mt-2" width="100">
+                        {% endif %}
+                    </div>
+                    <hr>
+                    <button type="submit" class="btn btn-primary">Salvar Produto</button>
+                    <a href="{{ url_for('admin_products') }}" class="btn btn-secondary">Cancelar</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
