@@ -52,11 +52,69 @@ def index():
             params.extend(selected_categories)
         cursor.execute(base_query, tuple(params))
         products = cursor.fetchall()
-        cursor.close()
-        conn.close()
-        return render_template('index.html', products=products, all_categories=all_categories)
     except Exception as e:
         return f"Erro ao conectar ao banco: {e}"
+    finally:
+        if 'conn' in locals() and conn.is_connected():
+            cursor.close()
+            conn.close()
+    return render_template('index.html', products=products, all_categories=all_categories)
+
+# --- ROTAS DE ASSINATURA (VERSÃO FINAL E CORRIGIDA) ---
+@app.route('/subscriptions')
+def subscriptions_page():
+    return render_template('subscriptions.html')
+
+@app.route('/subscribe', methods=['POST'])
+def subscribe():
+    if 'loggedin' not in session:
+        flash('Você precisa estar logado para assinar um plano.', 'warning')
+        return redirect(url_for('login'))
+
+    user_id = session['id']
+    plan_name = request.form.get('plan_name')
+    plan_price = request.form.get('plan_price')
+    next_billing = date.today() + timedelta(days=30)
+
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("SELECT * FROM subscriptions WHERE user_id = %s", (user_id,))
+    subscription = cursor.fetchone()
+
+    if subscription:
+        if subscription['status'] == 'ativa':
+            flash('Você já possui uma assinatura ativa.', 'info')
+        else:
+            cursor.execute("UPDATE subscriptions SET plan_name = %s, plan_price = %s, status = 'ativa', start_date = NOW(), next_billing_date = %s WHERE user_id = %s",
+                           (plan_name, plan_price, next_billing, user_id))
+            conn.commit()
+            flash(f'Sua assinatura do plano {plan_name} foi reativada com sucesso!', 'success')
+    else:
+        cursor.execute("INSERT INTO subscriptions (user_id, plan_name, plan_price, status, next_billing_date) VALUES (%s, %s, %s, 'ativa', %s)",
+                       (user_id, plan_name, plan_price, next_billing))
+        conn.commit()
+        flash(f'Obrigado por assinar o plano {plan_name}! Sua assinatura já está ativa.', 'success')
+
+    cursor.close()
+    conn.close()
+    return redirect(url_for('my_account'))
+
+@app.route('/cancel_subscription', methods=['POST'])
+def cancel_subscription():
+    if 'loggedin' not in session:
+        return redirect(url_for('login'))
+    user_id = session['id']
+    conn = mysql.connector.connect(**db_config)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE subscriptions SET status = 'cancelada' WHERE user_id = %s AND status = 'ativa'", (user_id,))
+    conn.commit()
+    cursor.close()
+    conn.close()
+    flash('Sua assinatura foi cancelada com sucesso.', 'info')
+    return redirect(url_for('my_account'))
+
+# (O restante de todo o seu app.py, com as outras rotas, continua aqui sem alteração)
 @app.route('/product/<int:product_id>')
 def product(product_id):
     try:
@@ -172,65 +230,6 @@ def reset_password(token):
     cursor.close()
     conn.close()
     return render_template('reset_password.html', token=token)
-
-# --- ROTAS DE ASSINATURA ---
-@app.route('/subscriptions')
-def subscriptions_page():
-    return render_template('subscriptions.html')
-
-@app.route('/subscribe', methods=['POST'])
-def subscribe():
-    if 'loggedin' not in session:
-        flash('Você precisa estar logado para assinar um plano.', 'warning')
-        return redirect(url_for('login'))
-
-    user_id = session['id']
-    plan_name = request.form.get('plan_name')
-    plan_price = request.form.get('plan_price')
-
-    conn = mysql.connector.connect(**db_config)
-    cursor = conn.cursor(dictionary=True)
-
-    # Verifica se o usuário já tem uma assinatura ativa
-    cursor.execute("SELECT * FROM subscriptions WHERE user_id = %s AND status = 'ativa'", (user_id,))
-    existing_subscription = cursor.fetchone()
-
-    if existing_subscription:
-        flash('Você já possui uma assinatura ativa.', 'info')
-        return redirect(url_for('my_account'))
-
-    # Calcula a data da próxima cobrança (daqui a 30 dias)
-    next_billing = date.today() + timedelta(days=30)
-    
-    # Insere a nova assinatura
-    cursor.execute("INSERT INTO subscriptions (user_id, plan_name, plan_price, next_billing_date) VALUES (%s, %s, %s, %s)",
-                   (user_id, plan_name, plan_price, next_billing))
-    conn.commit()
-    cursor.close()
-    conn.close()
-
-    flash(f'Obrigado por assinar o plano {plan_name}! Sua assinatura já está ativa.', 'success')
-    return redirect(url_for('my_account'))
-
-@app.route('/cancel_subscription', methods=['POST'])
-def cancel_subscription():
-    if 'loggedin' not in session:
-        return redirect(url_for('login'))
-
-    user_id = session['id']
-    conn = mysql.connector.connect(**db_config)
-    cursor = conn.cursor()
-    # Atualiza o status da assinatura para 'cancelada'
-    cursor.execute("UPDATE subscriptions SET status = 'cancelada' WHERE user_id = %s AND status = 'ativa'", (user_id,))
-    conn.commit()
-    cursor.close()
-    conn.close()
-
-    flash('Sua assinatura foi cancelada com sucesso.', 'info')
-    return redirect(url_for('my_account'))
-
-
-# --- 'my_account'---
 @app.route('/my_account', methods=['GET', 'POST'])
 def my_account():
     if 'loggedin' not in session: return redirect(url_for('login'))
@@ -241,23 +240,19 @@ def my_account():
         street = request.form['street']; number = request.form['number']; complement = request.form.get('complement', ''); neighborhood = request.form['neighborhood']; city = request.form['city']; state = request.form['state']; zip_code = request.form['zip_code']
         cursor.execute("INSERT INTO addresses (user_id, street, number, complement, neighborhood, city, state, zip_code) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)", (user_id, street, number, complement, neighborhood, city, state, zip_code)); conn.commit()
         flash('Endereço adicionado com sucesso!', 'success'); return redirect(url_for('my_account'))
-    
     cursor.execute("SELECT * FROM addresses WHERE user_id = %s", (user_id,))
     addresses = cursor.fetchall()
-    
     cursor.execute("SELECT id, order_date, total_amount, status FROM orders WHERE user_id = %s ORDER BY order_date DESC", (user_id,))
     orders = cursor.fetchall()
     for order in orders:
-        cursor.execute("SELECT p.name, p.id as product_id, oi.quantity FROM order_items oi JOIN products p ON oi.product_id = p.id WHERE oi.order_id = %s", (order['id'],)); order['products'] = cursor.fetchall()
-
-    # Busca a assinatura do usuário
+        cursor.execute("SELECT p.name, p.id as product_id, oi.quantity FROM order_items oi JOIN products p ON oi.product_id = p.id WHERE oi.order_id = %s", (order['id'],)); 
+        order['products'] = cursor.fetchall()
     cursor.execute("SELECT * FROM subscriptions WHERE user_id = %s", (user_id,))
-    subscription = cursor.fetchone()
-
+    subscription_list = cursor.fetchall()
+    subscription = subscription_list[0] if subscription_list else None
     cursor.close()
     conn.close()
     return render_template('my_account.html', addresses=addresses, orders=orders, subscription=subscription)
-
 @app.route('/add_to_cart/<int:product_id>', methods=['POST'])
 def add_to_cart(product_id):
     if 'loggedin' not in session: flash('Você precisa estar logado para adicionar itens ao carrinho!', 'warning'); return redirect(url_for('login'))
@@ -435,5 +430,7 @@ def report_low_stock():
     stock_limit = 10
     cursor.execute("SELECT id, name, stock_quantity FROM products WHERE stock_quantity <= %s ORDER BY stock_quantity ASC", (stock_limit,)); low_stock_products = cursor.fetchall(); cursor.close(); conn.close()
     return render_template('admin/report_low_stock.html', products=low_stock_products, limit=stock_limit)
+
+
 if __name__ == '__main__':
     app.run(debug=True)
